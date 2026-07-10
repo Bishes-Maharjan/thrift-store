@@ -1,0 +1,96 @@
+import { prisma } from '@/lib/db'
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const category = searchParams.get('category')
+    const q = searchParams.get('q')
+
+    const where: any = { isActive: true }
+    if (category) where.category = { slug: category }
+    if (q) where.name = { contains: q, mode: 'insensitive' }
+
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: true,
+        category: true,
+      }
+    })
+    return NextResponse.json(products)
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth()
+    if (session?.user?.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const data = await req.json()
+    
+    if (!data.name || !data.slug || !data.categoryId || data.basePrice === undefined) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        name: data.name,
+        slug: data.slug,
+        description: data.description || null,
+        categoryId: data.categoryId,
+        basePrice: parseFloat(data.basePrice),
+        isActive: data.isActive !== undefined ? data.isActive : true,
+      }
+    })
+
+    // If variants were provided
+    if (data.variants && Array.isArray(data.variants)) {
+      for (const variant of data.variants) {
+        await prisma.productVariant.create({
+          data: {
+            productId: product.id,
+            sku: variant.sku,
+            price: parseFloat(variant.price || data.basePrice),
+            stockQuantity: parseInt(variant.stockQuantity || '0', 10),
+            attributes: variant.attributes || {},
+          }
+        })
+      }
+    }
+
+    // If images were provided (assumes they are pre-uploaded to cloudinary and we just save the URL/publicId)
+    if (data.images && Array.isArray(data.images)) {
+      for (const [index, img] of data.images.entries()) {
+        await prisma.productImage.create({
+          data: {
+            productId: product.id,
+            url: img.url,
+            publicId: img.publicId,
+            isPrimary: index === 0,
+            sortOrder: index,
+          }
+        })
+      }
+    }
+
+    const fullProduct = await prisma.product.findUnique({
+      where: { id: product.id },
+      include: { variants: true, images: true }
+    })
+
+    return NextResponse.json(fullProduct, { status: 201 })
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Product slug or SKU already exists' }, { status: 400 })
+    }
+    console.error(error)
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+  }
+}
