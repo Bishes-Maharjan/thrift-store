@@ -109,8 +109,8 @@ export default function CheckoutForm({
     if (result?.error) {
       setError(result.error)
       setIsLoading(false)
-    } else if (result?.redirectUrl) {
-      window.location.href = result.redirectUrl // Khalti redirect
+    } else if (result?.redirectUrl || result?.pidx) {
+      window.location.href = `https://test-pay.khalti.com/wallet?pidx=${result?.pidx}` // Khalti redirect
     } else if (result?.success) {
       router.push(`/orders/${result.orderId}`)
     }

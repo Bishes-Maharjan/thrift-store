@@ -1,5 +1,6 @@
 'use client'
 
+import { getPayment } from '@/app/actions/checkout'
 import { useState } from 'react'
 
 export default function ContinuePaymentButton({ orderId }: { orderId: string }) {
@@ -11,21 +12,15 @@ export default function ContinuePaymentButton({ orderId }: { orderId: string }) 
         setError(null)
 
         try {
-            const res = await fetch(`/api/khalti/initiate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId }),
-            })
+            const pidx = await getPayment(orderId)
 
-            const data = await res.json()
-
-            if (res.ok && data.redirectUrl) {
-                window.location.href = data.redirectUrl
+            if (pidx) {
+                window.location.href = `https://test-pay.khalti.com/wallet?pidx=${pidx}`
             } else {
-                setError(data.error || 'Could not initiate payment')
+                setError('Could not initiate payment')
             }
-        } catch (e) {
-            console.error(e)
+        } catch (e: unknown) {
+            console.error(e instanceof Error ? e.message : String(e))
             setError('Error connecting to Khalti')
         } finally {
             setLoading(false)

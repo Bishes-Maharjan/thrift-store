@@ -56,7 +56,19 @@ export async function placeOrder(formData: { line1: string; city: string; provin
   })
 
   // Create address
-  const address = await prisma.address.create({
+  let address = await prisma.address.findFirst({
+    where: {
+      userId,
+      line1,
+      city,
+      province,
+      postalCode,
+    }
+  })
+
+  
+if(!address){
+   address = await prisma.address.create({
     data: {
       userId,
       line1,
@@ -67,7 +79,7 @@ export async function placeOrder(formData: { line1: string; city: string; provin
       longitude,
     }
   })
-
+}
   // Create Order
   const order = await prisma.order.create({
     data: {
@@ -143,7 +155,8 @@ export async function placeOrder(formData: { line1: string; city: string; provin
           where: { id: { in: itemsToPurchase.map(i => i.id) } }
         })
 
-        return { redirectUrl: data.payment_url }
+        console.log('Khalti payment initiated successfully', data)
+        return { redirectUrl: data.payment_url, pidx: data.pidx }
       } else {
         console.error('Khalti init error:', data)
         return { error: 'Could not initiate Khalti payment' }
@@ -155,4 +168,9 @@ export async function placeOrder(formData: { line1: string; city: string; provin
   }
 
   return { error: 'Invalid payment method' }
+}
+
+export async function getPayment(orderId: string) {
+  const payment = await prisma.payment.findFirst({ where: { orderId }, include: { order: true } })
+  return payment?.pidx
 }

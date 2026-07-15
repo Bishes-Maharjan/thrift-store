@@ -40,7 +40,7 @@ export default async function Header() {
           
           {session?.user ? (
             <div className="flex items-center space-x-4">
-              <Link href="/account" className="hover:text-[#0071e3] transition-colors">
+              <Link href="/account/orders" className="hover:text-[#0071e3] transition-colors">
                 {session.user.name || 'Account'}
               </Link>
               {session.user.role === 'ADMIN' && (
