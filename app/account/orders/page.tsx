@@ -2,19 +2,21 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { OrderWithDetails } from '@/types/db-schema'
 
 export default async function OrdersPage() {
   const session = await auth()
-  
+
   if (!session?.user) {
     redirect('/auth/login?callbackUrl=/account/orders')
   }
 
-  const orders = await prisma.order.findMany({
+  const orders: OrderWithDetails[] = await prisma.order.findMany({
     where: { userId: session.user.id },
     include: {
       items: true,
       payment: true,
+      address: true,
     },
     orderBy: { createdAt: 'desc' }
   })
@@ -22,7 +24,7 @@ export default async function OrdersPage() {
   return (
     <>
       <h2 className="text-xl font-black uppercase text-[#1d1d1f] mb-8 border-b border-[#d2d2d7] pb-4">Order History</h2>
-      
+
       {orders.length === 0 ? (
         <div className="text-center py-16 bg-[#f5f5f7] border border-dashed border-[#d2d2d7] rounded-xl">
           <p className="text-sm font-bold tracking-widest uppercase text-[#86868b]">You haven't placed any orders yet.</p>
@@ -53,19 +55,18 @@ export default async function OrdersPage() {
                   <Link href={`/orders/${order.id}`} className="text-xs font-bold tracking-widest uppercase text-[#0071e3] hover:underline mb-2 sm:mb-0">
                     View Details
                   </Link>
-                  <span className={`inline-block px-3 py-1 text-[10px] font-bold tracking-widest uppercase mt-2 sm:mt-1 ${
-                    order.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                  <span className={`inline-block px-3 py-1 text-[10px] font-bold tracking-widest uppercase mt-2 sm:mt-1 ${order.status === 'PAID' ? 'bg-green-100 text-green-800' :
                     order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-200 text-gray-800'
-                  }`}>
+                      'bg-gray-200 text-gray-800'
+                    }`}>
                     {order.status}
                   </span>
                 </div>
               </div>
               <div className="px-6 py-6">
-                <p className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f] mb-4">{order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}</p>
+                <p className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f] mb-4">{order.items!.length} {order.items!.length === 1 ? 'Item' : 'Items'}</p>
                 <ul className="divide-y divide-[#d2d2d7] border-t border-[#d2d2d7]">
-                  {order.items.map((item) => (
+                  {order.items && order.items.map((item) => (
                     <li key={item.id} className="py-4 flex justify-between">
                       <div className="flex">
                         <div>
