@@ -40,14 +40,25 @@ export async function PATCH(
 ) {
   try {
     const session = await auth()
-    if (session?.user?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { id } = await params
     const data = await req.json()
 
-    // Typically only update status (e.g. from PAID to SHIPPED or DELIVERED)
+    // Determine authorization and limits
+    if (session?.user?.role !== 'ADMIN') {
+      if (data.status !== 'CANCELLED') {
+        return NextResponse.json({ error: 'Users can only cancel their orders' }, { status: 401 })
+      }
+      
+      const existingOrder = await prisma.order.findUnique({ where: { id } })
+      if (!existingOrder || existingOrder.userId !== session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      
+      if (['SHIPPED', 'DELIVERED', 'CANCELLED'].includes(existingOrder.status)) {
+        return NextResponse.json({ error: 'Order cannot be cancelled at this stage' }, { status: 400 })
+      }
+    }
+
     const order = await prisma.order.update({
       where: { id },
       data: {

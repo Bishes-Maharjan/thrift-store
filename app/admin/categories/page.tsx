@@ -4,9 +4,8 @@ import Link from 'next/link'
 export default async function AdminCategoriesPage() {
   const categories = await prisma.category.findMany({
     include: {
-      parent: true,
       _count: {
-        select: { products: true, children: true },
+        select: { products: true },
       },
     },
     orderBy: { name: 'asc' },
@@ -15,7 +14,13 @@ export default async function AdminCategoriesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-[#1d1d1f]">Categories</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
+        <Link
+          href="/admin/categories/new"
+          className="bg-black text-white px-4 py-2 text-xs font-bold tracking-widest uppercase hover:bg-gray-900 transition-colors"
+        >
+          Add Category
+        </Link>
       </div>
 
       <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-[#d2d2d7]">
@@ -29,10 +34,10 @@ export default async function AdminCategoriesPage() {
                 Slug
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#86868b] uppercase tracking-wider">
-                Parent
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#86868b] uppercase tracking-wider">
                 Products
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-[#86868b] uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
@@ -46,10 +51,15 @@ export default async function AdminCategoriesPage() {
                   {category.slug}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[#86868b]">
-                  {category.parent?.name || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-[#86868b]">
                   {category._count.products}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <Link
+                    href={`/admin/categories/${category.id}`}
+                    className="text-black hover:text-gray-600 font-bold"
+                  >
+                    Edit
+                  </Link>
                 </td>
               </tr>
             ))}

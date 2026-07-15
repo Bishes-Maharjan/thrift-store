@@ -18,7 +18,7 @@ export async function placeOrder(formData: { line1: string; city: string; provin
     include: {
       items: {
         include: {
-          productVariant: { include: { product: true } }
+          product: true
         }
       }
     }
@@ -29,7 +29,7 @@ export async function placeOrder(formData: { line1: string; city: string; provin
   }
 
   // Filter items if itemIds were provided
-  const itemsToPurchase = itemIds && itemIds.length > 0 
+  const itemsToPurchase = itemIds && itemIds.length > 0
     ? cart.items.filter(item => itemIds.includes(item.id))
     : cart.items
 
@@ -37,15 +37,21 @@ export async function placeOrder(formData: { line1: string; city: string; provin
     return { error: 'No items selected for purchase' }
   }
 
+  // Check if all selected items are still active
+  const inactiveItems = itemsToPurchase.filter(item => !item.product.isActive)
+  if (inactiveItems.length > 0) {
+    return { error: 'One or more items are no longer available for purchase' }
+  }
+
   // Calculate total and snapshot items
   let totalAmount = 0
   const orderItemsData = itemsToPurchase.map(item => {
-    totalAmount += item.productVariant.price * item.quantity
+    totalAmount += item.product.price * item.quantity
     return {
-      productVariantId: item.productVariantId,
-      productName: item.productVariant.product.name,
+      productId: item.productId,
+      productName: item.product.name,
       quantity: item.quantity,
-      priceAtPurchase: item.productVariant.price
+      priceAtPurchase: item.product.price
     }
   })
 
@@ -85,19 +91,13 @@ export async function placeOrder(formData: { line1: string; city: string; provin
     }
   })
 
-  // If COD, we can immediately decrement stock and confirm
+  // If COD, we can confirm immediately (no stock decrement needed anymore)
   if (paymentMethod === 'COD') {
-    for (const item of itemsToPurchase) {
-      await prisma.productVariant.update({
-        where: { id: item.productVariantId },
-        data: { stockQuantity: { decrement: item.quantity } }
-      })
-    }
     // Remove purchased items from cart
     await prisma.cartItem.deleteMany({
       where: { id: { in: itemsToPurchase.map(i => i.id) } }
     })
-    
+
     return { success: true, orderId: order.id }
   }
 
@@ -105,7 +105,7 @@ export async function placeOrder(formData: { line1: string; city: string; provin
     // Initiate Khalti payment
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/khalti/callback`
     const purchaseOrderId = order.id
-    
+
     const khaltiPayload = {
       return_url: returnUrl,
       website_url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',

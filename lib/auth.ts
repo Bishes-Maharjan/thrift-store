@@ -52,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               // Move items
               for (const item of guestCart.items) {
                 const existing = await prisma.cartItem.findFirst({
-                  where: { cartId: userCart.id, productVariantId: item.productVariantId }
+                  where: { cartId: userCart.id, productId: item.productId }
                 })
 
                 if (existing) {
@@ -76,7 +76,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role, // Assuming we want role in session
+            role: user.role,
+            phone: user.phone
           }
         }
 

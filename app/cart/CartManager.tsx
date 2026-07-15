@@ -20,7 +20,7 @@ export default function CartManager({ items }: { items: any[] }) {
   }
 
   const selectedItems = items.filter((item) => selectedItemIds.has(item.id))
-  const subtotal = selectedItems.reduce((acc, item) => acc + item.productVariant.price * item.quantity, 0)
+  const subtotal = selectedItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0)
   const itemsCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0)
   
   const checkoutUrl = `/checkout?items=${Array.from(selectedItemIds).join(',')}`

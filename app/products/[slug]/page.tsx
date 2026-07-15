@@ -14,7 +14,6 @@ export default async function ProductDetailPage({
     where: { slug },
     include: {
       category: true,
-      variants: true,
       images: { orderBy: { sortOrder: 'asc' } },
     },
   })
@@ -66,7 +65,7 @@ export default async function ProductDetailPage({
                 </div>
               </div>
 
-              <div className="w-full aspect-w-3 aspect-h-4 bg-[#f5f5f7] flex items-center justify-center rounded-xl">
+              <div className="w-full aspect-[3/4] bg-[#f5f5f7] flex items-center justify-center rounded-xl overflow-hidden">
                 {product.images[0] ? (
                   <img src={product.images[0].url} alt={product.name} className="w-full h-full object-center object-cover" />
                 ) : (
@@ -82,7 +81,7 @@ export default async function ProductDetailPage({
 
               <div className="mt-6 border-t border-b border-[#d2d2d7] py-6">
                 <h2 className="sr-only">Product information</h2>
-                <p className="text-3xl font-black text-[#1d1d1f]">${product.basePrice.toFixed(2)}</p>
+                <p className="text-3xl font-black text-[#1d1d1f]">${product.price.toFixed(2)}</p>
               </div>
 
               <div className="mt-6">
@@ -91,8 +90,8 @@ export default async function ProductDetailPage({
               </div>
 
               <div className="mt-10 flex gap-4">
-                {product.variants.length > 0 ? (
-                  <AddToCartForm variants={product.variants} />
+                {product.isActive ? (
+                  <AddToCartForm productId={product.id} />
                 ) : (
                   <p className="text-red-600 font-bold tracking-widest uppercase text-sm">Out of stock</p>
                 )}
@@ -111,7 +110,7 @@ export default async function ProductDetailPage({
                     href={`/products/${relProduct.slug}`}
                     className="group block"
                   >
-                    <div className="aspect-w-3 aspect-h-4 w-full overflow-hidden bg-[#f5f5f7] flex items-center justify-center relative rounded-xl">
+                    <div className="aspect-[3/4] w-full overflow-hidden bg-[#f5f5f7] flex items-center justify-center relative rounded-xl">
                       {relProduct.images[0] ? (
                         <img
                           src={relProduct.images[0].url}
@@ -128,7 +127,7 @@ export default async function ProductDetailPage({
                           {relProduct.name}
                         </h3>
                       </div>
-                      <p className="text-sm font-bold text-[#1d1d1f]">${relProduct.basePrice.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-[#1d1d1f]">${relProduct.price.toFixed(2)}</p>
                     </div>
                   </Link>
                 ))}

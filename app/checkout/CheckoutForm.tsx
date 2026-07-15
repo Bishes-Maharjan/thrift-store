@@ -10,7 +10,27 @@ const MapPicker = dynamic(() => import('./MapPicker'), {
   loading: () => <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md">Loading Map...</div>
 })
 
-export default function CheckoutForm({ cartTotal, itemsCount, itemIds }: { cartTotal: number, itemsCount: number, itemIds?: string }) {
+type Address = {
+  id: string
+  line1: string
+  city: string
+  province: string
+  postalCode: string | null
+  latitude: number
+  longitude: number
+}
+
+export default function CheckoutForm({ 
+  cartTotal, 
+  itemsCount, 
+  itemIds, 
+  addresses 
+}: { 
+  cartTotal: number
+  itemsCount: number
+  itemIds?: string
+  addresses: Address[]
+}) {
   const router = useRouter()
   const [formData, setFormData] = useState({
     line1: '',
@@ -23,6 +43,36 @@ export default function CheckoutForm({ cartTotal, itemsCount, itemIds }: { cartT
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('new')
+
+  const handleAddressSelect = (id: string) => {
+    setSelectedAddressId(id)
+    if (id === 'new') {
+      setFormData(prev => ({
+        ...prev,
+        line1: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        latitude: 0,
+        longitude: 0,
+      }))
+    } else {
+      const address = addresses.find(a => a.id === id)
+      if (address) {
+        setFormData(prev => ({
+          ...prev,
+          line1: address.line1,
+          city: address.city,
+          province: address.province,
+          postalCode: address.postalCode || '',
+          latitude: address.latitude,
+          longitude: address.longitude,
+        }))
+      }
+    }
+  }
 
   const handleLocationSelect = (lat: number, lng: number, address: { city: string; province: string; postalCode: string; line1: string } | null) => {
     setFormData(prev => ({
@@ -69,7 +119,7 @@ export default function CheckoutForm({ cartTotal, itemsCount, itemIds }: { cartT
   return (
     <form onSubmit={handleSubmit} className="space-y-12">
       {/* Map Picker */}
-      <div>
+      <div className={selectedAddressId !== 'new' ? 'opacity-50 pointer-events-none' : ''}>
         <h3 className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f] mb-2">Delivery Location</h3>
         <p className="text-xs font-bold tracking-widest text-[#86868b] uppercase mb-6">Click on the map to select your delivery location.</p>
         <MapPicker onLocationSelect={handleLocationSelect} />
@@ -77,8 +127,24 @@ export default function CheckoutForm({ cartTotal, itemsCount, itemIds }: { cartT
 
       {/* Address Form */}
       <div>
-        <h3 className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f] mb-6 border-b border-[#d2d2d7] pb-2">Address Details</h3>
-        <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+        <div className="flex justify-between items-center mb-6 border-b border-[#d2d2d7] pb-2">
+          <h3 className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f]">Address Details</h3>
+          {addresses.length > 0 && (
+            <select
+              value={selectedAddressId}
+              onChange={(e) => handleAddressSelect(e.target.value)}
+              className="block w-64 border border-[#d2d2d7] focus:border-[#0071e3] focus:ring-[#0071e3] sm:text-sm px-3 py-2 bg-white text-[#1d1d1f] rounded-sm"
+            >
+              <option value="new">Enter New Address</option>
+              {addresses.map(addr => (
+                <option key={addr.id} value={addr.id}>
+                  {addr.line1}, {addr.city}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className={`grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4 ${selectedAddressId !== 'new' ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="sm:col-span-2">
             <label htmlFor="line1" className="block text-xs font-bold tracking-widest uppercase text-[#1d1d1f]">Address Line 1</label>
             <input

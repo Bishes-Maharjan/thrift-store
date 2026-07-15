@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -26,12 +26,21 @@ function LocationMarker({
   setPosition: (pos: L.LatLng) => void
   onLocationFound: (lat: number, lng: number) => void
 }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       setPosition(e.latlng)
       onLocationFound(e.latlng.lat, e.latlng.lng)
     },
+    locationfound(e) {
+      setPosition(e.latlng)
+      map.flyTo(e.latlng, 15)
+      onLocationFound(e.latlng.lat, e.latlng.lng)
+    }
   })
+
+  useEffect(() => {
+    map.locate()
+  }, [map])
 
   return position === null ? null : <Marker position={position} icon={icon} />
 }

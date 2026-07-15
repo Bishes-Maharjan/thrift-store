@@ -13,7 +13,6 @@ export async function GET(
       where: { id },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
-        variants: true,
         category: true,
       }
     })
@@ -39,8 +38,6 @@ export async function PATCH(
     const { id } = await params
     const data = await req.json()
 
-    // Note: We are just updating top level product fields here for brevity
-    // In a full app, you would also sync variants and images
     const product = await prisma.product.update({
       where: { id },
       data: {
@@ -48,7 +45,7 @@ export async function PATCH(
         slug: data.slug,
         description: data.description,
         categoryId: data.categoryId,
-        basePrice: data.basePrice !== undefined ? parseFloat(data.basePrice) : undefined,
+        price: data.price !== undefined ? parseFloat(data.price) : undefined,
         isActive: data.isActive,
       }
     })

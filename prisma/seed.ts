@@ -40,23 +40,7 @@ async function main() {
       slug: 'sample-product',
       description: 'A great smartphone with advanced features.',
       categoryId: category.id,
-      basePrice: 500,
-      variants: {
-        create: [
-          {
-            sku: 'SP-128GB-BLK',
-            price: 500,
-            stockQuantity: 10,
-            attributes: { storage: '128GB', color: 'Black' },
-          },
-          {
-            sku: 'SP-256GB-WHT',
-            price: 600,
-            stockQuantity: 5,
-            attributes: { storage: '256GB', color: 'White' },
-          },
-        ],
-      },
+      price: 500,
     },
   })
 

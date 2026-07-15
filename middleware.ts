@@ -9,6 +9,7 @@ export default auth((req) => {
   const isAdminRoute = req.nextUrl.pathname.startsWith('/admin')
   const isAccountRoute = req.nextUrl.pathname.startsWith('/account')
 
+  // console.log(req.auth?.user)
   if (isAuthRoute) {
     if (isLoggedIn) {
       return Response.redirect(new URL('/', req.nextUrl))

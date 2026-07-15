@@ -16,7 +16,6 @@ export async function GET(req: Request) {
       where,
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
-        variants: true,
         category: true,
       }
     })
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
 
     const data = await req.json()
     
-    if (!data.name || !data.slug || !data.categoryId || data.basePrice === undefined) {
+    if (!data.name || !data.slug || !data.categoryId || data.price === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -45,25 +44,10 @@ export async function POST(req: Request) {
         slug: data.slug,
         description: data.description || null,
         categoryId: data.categoryId,
-        basePrice: parseFloat(data.basePrice),
+        price: parseFloat(data.price),
         isActive: data.isActive !== undefined ? data.isActive : true,
       }
     })
-
-    // If variants were provided
-    if (data.variants && Array.isArray(data.variants)) {
-      for (const variant of data.variants) {
-        await prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            sku: variant.sku,
-            price: parseFloat(variant.price || data.basePrice),
-            stockQuantity: parseInt(variant.stockQuantity || '0', 10),
-            attributes: variant.attributes || {},
-          }
-        })
-      }
-    }
 
     // If images were provided (assumes they are pre-uploaded to cloudinary and we just save the URL/publicId)
     if (data.images && Array.isArray(data.images)) {
@@ -82,13 +66,13 @@ export async function POST(req: Request) {
 
     const fullProduct = await prisma.product.findUnique({
       where: { id: product.id },
-      include: { variants: true, images: true }
+      include: { images: true }
     })
 
     return NextResponse.json(fullProduct, { status: 201 })
   } catch (error: any) {
     if (error.code === 'P2002') {
-      return NextResponse.json({ error: 'Product slug or SKU already exists' }, { status: 400 })
+      return NextResponse.json({ error: 'Product slug already exists' }, { status: 400 })
     }
     console.error(error)
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useState, startTransition } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -16,12 +16,7 @@ type FormState = {
 const initialState: FormState = {}
 
 export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: FormState, formData: FormData) => {
-      return await login(formData)
-    },
-    initialState
-  )
+  const [state, formAction, isPending] = useActionState(login, initialState)
   const router = useRouter()
 
   // Client-side validation state
@@ -74,7 +69,9 @@ export default function LoginPage() {
       Object.entries(formData).forEach(([key, value]) => {
         formDataObj.append(key, value)
       })
-      formAction(formDataObj)
+      startTransition(() => {
+        formAction(formDataObj)
+      })
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {}

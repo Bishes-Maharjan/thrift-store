@@ -4,9 +4,7 @@ import { auth } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const categories = await prisma.category.findMany({
-      include: { children: true, parent: true }
-    })
+    const categories = await prisma.category.findMany()
     return NextResponse.json(categories)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
@@ -30,7 +28,6 @@ export async function POST(req: Request) {
       data: {
         name: data.name,
         slug: data.slug,
-        parentId: data.parentId || null,
       }
     })
 

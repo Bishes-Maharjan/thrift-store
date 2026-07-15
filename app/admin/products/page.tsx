@@ -5,7 +5,6 @@ export default async function AdminProductsPage() {
   const products = await prisma.product.findMany({
     include: {
       category: true,
-      variants: true,
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -14,6 +13,12 @@ export default async function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-[#1d1d1f]">Products</h1>
+        <Link
+          href="/admin/products/new"
+          className="bg-black text-white px-4 py-2 text-xs font-bold tracking-widest uppercase hover:bg-gray-900 transition-colors"
+        >
+          Add Product
+        </Link>
       </div>
 
       <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-[#d2d2d7]">
@@ -48,7 +53,7 @@ export default async function AdminProductsPage() {
                   {product.category.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1d1d1f]">
-                  ${product.basePrice.toFixed(2)}
+                  ${product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -60,6 +65,12 @@ export default async function AdminProductsPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <Link
+                    href={`/admin/products/${product.id}`}
+                    className="text-black hover:text-gray-600 font-bold mr-4"
+                  >
+                    Edit
+                  </Link>
                   <Link
                     href={`/products/${product.slug}`}
                     className="text-[#0071e3] hover:text-[#0077ed] font-bold"

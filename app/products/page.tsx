@@ -32,9 +32,8 @@ export default async function ProductsCatalogPage({
     orderBy: { createdAt: 'desc' },
   })
 
-  const categories = await prisma.category.findMany({
-    where: { parentId: null },
-  })
+  // Categories are flat, so just fetch them all
+  const categories = await prisma.category.findMany()
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen">
@@ -76,7 +75,7 @@ export default async function ProductsCatalogPage({
           <div className="mb-10 border-b border-[#d2d2d7] pb-4">
             <h1 className="text-3xl font-black tracking-tighter uppercase text-[#1d1d1f]">
               {categorySlug ? `Category: ${categorySlug}` : 'All Products'} 
-              {q && <span className="block text-xl text-gray-500 mt-2 font-light">Search results for "{q}"</span>}
+              {q && <span className="block text-xl text-gray-500 mt-2 font-light">Search results for &quot;{q}&quot;</span>}
             </h1>
           </div>
 
@@ -92,7 +91,7 @@ export default async function ProductsCatalogPage({
                   href={`/products/${product.slug}`}
                   className="group block"
                 >
-                  <div className="aspect-w-3 aspect-h-4 w-full overflow-hidden bg-[#f5f5f7] flex items-center justify-center relative rounded-xl">
+                  <div className="aspect-[3/4] w-full overflow-hidden bg-[#f5f5f7] flex items-center justify-center relative rounded-xl">
                     {product.images[0] ? (
                       <img
                         src={product.images[0].url}
@@ -103,7 +102,7 @@ export default async function ProductsCatalogPage({
                       <span className="text-[#86868b] text-xs tracking-widest uppercase">No Image</span>
                     )}
                     {/* Micro-animation overlay */}
-                    <div className="absolute inset-0 bg-[#1d1d1f] bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-300"></div>
+                    <div className="absolute inset-0 bg-[#1d1d1f]/0 group-hover:bg-[#1d1d1f]/5 transition-all duration-300"></div>
                   </div>
                   <div className="mt-4 flex justify-between items-start">
                     <div>
@@ -112,7 +111,7 @@ export default async function ProductsCatalogPage({
                       </h3>
                       <p className="mt-1 text-xs text-[#86868b] uppercase tracking-widest">{product.category.name}</p>
                     </div>
-                    <p className="text-sm font-bold text-[#1d1d1f]">${product.basePrice.toFixed(2)}</p>
+                    <p className="text-sm font-bold text-[#1d1d1f]">${product.price.toFixed(2)}</p>
                   </div>
                 </Link>
               ))}

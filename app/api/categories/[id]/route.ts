@@ -9,8 +9,7 @@ export async function GET(
   try {
     const { id } = await params
     const category = await prisma.category.findUnique({
-      where: { id },
-      include: { children: true, parent: true }
+      where: { id }
     })
     
     if (!category) return NextResponse.json({ error: 'Category not found' }, { status: 404 })
@@ -39,7 +38,6 @@ export async function PATCH(
       data: {
         name: data.name,
         slug: data.slug,
-        parentId: data.parentId !== undefined ? data.parentId : undefined
       }
     })
 

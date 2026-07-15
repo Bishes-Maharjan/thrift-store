@@ -20,12 +20,8 @@ export async function getCart() {
     include: {
       items: {
         include: {
-          productVariant: {
-            include: {
-              product: {
-                include: { images: true },
-              },
-            },
+          product: {
+            include: { images: true },
           },
         },
         orderBy: { id: 'asc' },
@@ -38,7 +34,7 @@ export async function getCart() {
 
 export async function addToCart(formData: FormData) {
   const data = {
-    productVariantId: formData.get('productVariantId') as string,
+    productId: formData.get('productId') as string,
     quantity: parseInt(formData.get('quantity') as string, 10),
   }
 
@@ -48,19 +44,19 @@ export async function addToCart(formData: FormData) {
     return { error: 'Invalid data' }
   }
 
-  const { productVariantId, quantity } = parsed.data
+  const { productId, quantity } = parsed.data
 
   const session = await auth()
   const sessionId = await ensureSessionId() // Server Action — safe to create cookie
   const userId = session?.user?.id
 
-  // Check stock
-  const variant = await prisma.productVariant.findUnique({
-    where: { id: productVariantId },
+  // Check product existence and active status
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
   })
 
-  if (!variant || variant.stockQuantity < quantity) {
-    return { error: 'Not enough stock available' }
+  if (!product || !product.isActive) {
+    return { error: 'Product is not available' }
   }
 
   let cart = await prisma.cart.findFirst({
@@ -79,32 +75,33 @@ export async function addToCart(formData: FormData) {
   const existingItem = await prisma.cartItem.findFirst({
     where: {
       cartId: cart.id,
-      productVariantId,
+      productId,
     },
   })
 
+  let cartItemId: string
+
   if (existingItem) {
     const newQuantity = existingItem.quantity + quantity
-    if (variant.stockQuantity < newQuantity) {
-      return { error: 'Not enough stock available' }
-    }
-    await prisma.cartItem.update({
+    const updated = await prisma.cartItem.update({
       where: { id: existingItem.id },
       data: { quantity: newQuantity },
     })
+    cartItemId = updated.id
   } else {
-    await prisma.cartItem.create({
+    const created = await prisma.cartItem.create({
       data: {
         cartId: cart.id,
-        productVariantId,
+        productId,
         quantity,
       },
     })
+    cartItemId = created.id
   }
 
   revalidatePath('/cart')
   revalidatePath('/products')
-  return { success: true }
+  return { success: true, cartItemId }
 }
 
 export async function removeCartItem(itemId: string) {
@@ -123,6 +120,38 @@ export async function removeCartItem(itemId: string) {
       id: itemId,
       cartId: cart.id,
     },
+  })
+
+  revalidatePath('/cart')
+  return { success: true }
+}
+
+export async function updateCartItemQuantity(itemId: string, quantity: number) {
+  const session = await auth()
+  const sessionId = await getSessionId()
+  const userId = session?.user?.id
+
+  if (quantity < 1) return { error: 'Quantity must be at least 1' }
+
+  const cart = await prisma.cart.findFirst({
+    where: userId ? { userId } : { sessionId },
+  })
+
+  if (!cart) return { error: 'Cart not found' }
+
+  // Verify the item belongs to this cart
+  const cartItem = await prisma.cartItem.findFirst({
+    where: {
+      id: itemId,
+      cartId: cart.id,
+    }
+  })
+
+  if (!cartItem) return { error: 'Cart item not found' }
+
+  await prisma.cartItem.update({
+    where: { id: itemId },
+    data: { quantity }
   })
 
   revalidatePath('/cart')

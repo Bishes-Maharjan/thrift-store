@@ -19,7 +19,12 @@ export async function getCloudinarySignature() {
     process.env.CLOUDINARY_API_SECRET!
   )
 
-  return { timestamp, signature }
+  return { 
+    timestamp, 
+    signature,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+    apiKey: process.env.CLOUDINARY_API_KEY!
+  }
 }
 
 export async function deleteCloudinaryImage(publicId: string) {

@@ -37,14 +37,6 @@ export async function GET(request: Request) {
 
     if (response.ok && data.status === 'Completed') {
       // Payment Successful
-      // Decrement stock
-      for (const item of payment.order.items) {
-        await prisma.productVariant.update({
-          where: { id: item.productVariantId },
-          data: { stockQuantity: { decrement: item.quantity } }
-        })
-      }
-
       // Update payment
       await prisma.payment.update({
         where: { id: payment.id },

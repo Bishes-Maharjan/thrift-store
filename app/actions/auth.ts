@@ -6,7 +6,7 @@ import { loginSchema, registerSchema } from '@/lib/schemas'
 import bcrypt from 'bcrypt'
 import { AuthError } from 'next-auth'
 
-export async function login(formData: FormData) {
+export async function login(prevState: any, formData: FormData) {
   const data = Object.fromEntries(formData)
   const parsed = loginSchema.safeParse(data)
 
@@ -34,7 +34,7 @@ export async function login(formData: FormData) {
   }
 }
 
-export async function register(formData: FormData) {
+export async function register(prevState: any, formData: FormData) {
   const data = Object.fromEntries(formData)
   const parsed = registerSchema.safeParse(data)
 
