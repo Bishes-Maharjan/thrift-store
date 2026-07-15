@@ -2,10 +2,9 @@
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
 import CancelOrderButton from './CancelOrderButton'
-import { placeOrder } from '@/app/actions/checkout'
 import ContinuePaymentButton from '@/components/ContinuewithPayment'
+import type { OrderWithDetails } from '@/types/db-schema'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -16,7 +15,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const { id } = await params
 
-  const order = await prisma.order.findUnique({
+  const order: OrderWithDetails | null = await prisma.order.findUnique({
     where: { id },
     include: {
       items: true,

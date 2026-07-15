@@ -2,6 +2,15 @@ import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import bcrypt from 'bcrypt'
+import { Prisma } from '@prisma/client'
+import type { Role } from '@/types/db-schema'
+
+type UpdateUserRequest = {
+  name?: string
+  phone?: string
+  role?: Role
+  password?: string
+}
 
 export async function GET(
   req: Request,
@@ -47,8 +56,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await req.json()
-    const updateData: any = {
+    const data: UpdateUserRequest = await req.json()
+    const updateData: Prisma.UserUpdateInput = {
       name: data.name,
       phone: data.phone,
     }
@@ -77,8 +86,10 @@ export async function PATCH(
     })
 
     return NextResponse.json(user)
-  } catch (error: any) {
-    if (error.code === 'P2025') return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
   }
 }
@@ -100,8 +111,10 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.code === 'P2025') return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 })
   }
 }

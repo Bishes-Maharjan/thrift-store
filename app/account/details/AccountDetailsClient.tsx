@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { User } from '@prisma/client'
 
-export default function AccountDetailsClient({ user }: { user: any }) {
+export default function AccountDetailsClient({ user }: { user: User }) {
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: user.name || '',
@@ -33,8 +34,8 @@ export default function AccountDetailsClient({ user }: { user: any }) {
 
       setSuccess(true)
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setIsLoading(false)
     }

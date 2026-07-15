@@ -3,23 +3,15 @@
 
 import { removeCartItem, updateCartItemQuantity } from '@/app/actions/cart'
 import { useState } from 'react'
-import { Prisma } from '@prisma/client'
 import DeleteModal from '@/components/ui/DeleteModal'
-
-type CartItemWithProduct = Prisma.CartItemGetPayload<{
-  include: {
-    product: {
-      include: { images: true }
-    }
-  }
-}>
+import type { CartItemWithDetails } from '@/types/db-schema'
 
 export default function CartItemComponent({ 
   item,
   isSelected,
   onToggle
 }: { 
-  item: CartItemWithProduct
+  item: CartItemWithDetails
   isSelected?: boolean
   onToggle?: () => void 
 }) {

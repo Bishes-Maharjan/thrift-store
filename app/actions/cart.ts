@@ -5,8 +5,9 @@ import { prisma } from '@/lib/db'
 import { addToCartSchema } from '@/lib/schemas'
 import { getSessionId, ensureSessionId } from '@/lib/session'
 import { revalidatePath } from 'next/cache'
+import type { CartWithDetails } from '@/types/db-schema'
 
-export async function getCart() {
+export async function getCart(): Promise<CartWithDetails | null> {
   const session = await auth()
   const sessionId = await getSessionId() // read-only, safe in Server Components
 

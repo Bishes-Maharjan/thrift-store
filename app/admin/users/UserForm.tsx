@@ -3,24 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import type { Role, UserFormInitialData, UserFormState } from '@/types/db-schema'
 
-type UserData = {
-  id?: string
-  email: string
-  name: string
-  phone: string
-  role: 'CUSTOMER' | 'ADMIN'
-  password?: string
-}
-
-export default function UserForm({ initialData }: { initialData?: UserData }) {
+export default function UserForm({ initialData }: { initialData?: UserFormInitialData }) {
   const router = useRouter()
-  const [formData, setFormData] = useState<UserData>({
+  const [formData, setFormData] = useState<UserFormState>({
+    id: initialData?.id,
     email: initialData?.email || '',
     name: initialData?.name || '',
     phone: initialData?.phone || '',
     role: initialData?.role || 'CUSTOMER',
-    password: ''
+    password: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,8 +46,8 @@ export default function UserForm({ initialData }: { initialData?: UserData }) {
 
       router.push('/admin/users')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setIsLoading(false)
     }
@@ -106,7 +99,7 @@ export default function UserForm({ initialData }: { initialData?: UserData }) {
         <label className="block text-xs font-bold tracking-widest text-[#1d1d1f] uppercase mb-2">Role</label>
         <select 
           value={formData.role} 
-          onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as any }))} 
+          onChange={e => setFormData(prev => ({ ...prev, role: e.target.value as Role }))} 
           className="block w-full border border-[#d2d2d7] focus:border-[#0071e3] sm:text-sm px-4 py-3 bg-white text-[#1d1d1f] rounded-sm"
         >
           <option value="CUSTOMER">Customer</option>

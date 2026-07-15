@@ -66,7 +66,7 @@ export default async function OrdersPage() {
               <div className="px-6 py-6">
                 <p className="text-sm font-bold tracking-widest uppercase text-[#1d1d1f] mb-4">{order.items!.length} {order.items!.length === 1 ? 'Item' : 'Items'}</p>
                 <ul className="divide-y divide-[#d2d2d7] border-t border-[#d2d2d7]">
-                  {order.items && order.items.map((item) => (
+                  {order.items.map((item) => (
                     <li key={item.id} className="py-4 flex justify-between">
                       <div className="flex">
                         <div>

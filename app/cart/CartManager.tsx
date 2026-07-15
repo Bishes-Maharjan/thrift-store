@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import CartItemComponent from './CartItem'
+import type { CartItemWithDetails } from '@/types/db-schema'
 
-export default function CartManager({ items }: { items: any[] }) {
+export default function CartManager({ items }: { items: CartItemWithDetails[] }) {
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(
     new Set(items.map((item) => item.id)) // Default all selected
   )

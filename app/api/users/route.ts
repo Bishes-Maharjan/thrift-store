@@ -2,6 +2,12 @@ import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import bcrypt from 'bcrypt'
+import { Prisma } from '@prisma/client'
+import type { Role, UserFormState } from '@/types/db-schema'
+
+type CreateUserRequest = Pick<UserFormState, 'email' | 'name' | 'phone' | 'role' | 'password'> & {
+  password: string
+}
 
 export async function GET() {
   try {
@@ -33,7 +39,7 @@ export async function POST(req: Request) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     // }
 
-    const data = await req.json()
+    const data: CreateUserRequest = await req.json()
 
     if (!data.email || !data.password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
@@ -59,8 +65,8 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(user, { status: 201 })
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 })
     }
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })

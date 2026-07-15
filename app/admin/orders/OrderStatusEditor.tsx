@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-type OrderStatus = 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+import type { OrderStatus } from '@/types/db-schema'
 
 export default function OrderStatusEditor({ 
   orderId, 
@@ -34,8 +33,8 @@ export default function OrderStatusEditor({
       }
       
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setIsLoading(false)
     }

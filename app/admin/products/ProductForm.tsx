@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { getCloudinarySignature } from '@/app/actions/cloudinary'
 import SearchableSelect from '@/components/ui/SearchableSelect'
 import DeleteModal from '@/components/ui/DeleteModal'
+import type { ProductImage, ProductWithImagesOrdered } from '@/types/db-schema'
 
 type Category = {
   id: string
   name: string
 }
-
 
 type ImageInfo = {
   url: string
@@ -33,7 +33,7 @@ export default function ProductForm({
   initialData,
   categories,
 }: {
-  initialData?: any
+  initialData?: ProductWithImagesOrdered
   categories: Category[]
 }) {
   const router = useRouter()
@@ -44,7 +44,7 @@ export default function ProductForm({
     categoryId: initialData?.categoryId || '',
     price: initialData?.price?.toString() || '',
     isActive: initialData?.isActive !== false,
-    images: initialData?.images?.map((img: any) => ({
+    images: initialData?.images?.map((img: ProductImage) => ({
       url: img.url,
       publicId: img.publicId,
     })) || [],

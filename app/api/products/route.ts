@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { Prisma } from '@prisma/client'
 
 export async function GET(req: Request) {
   try {
@@ -8,7 +9,7 @@ export async function GET(req: Request) {
     const category = searchParams.get('category')
     const q = searchParams.get('q')
 
-    const where: any = { isActive: true }
+    const where: Prisma.ProductWhereInput = { isActive: true }
     if (category) where.category = { slug: category }
     if (q) where.name = { contains: q, mode: 'insensitive' }
 
@@ -20,7 +21,8 @@ export async function GET(req: Request) {
       }
     })
     return NextResponse.json(products)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error instanceof Error ? error.message : String(error))
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
   }
 }
@@ -70,11 +72,11 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(fullProduct, { status: 201 })
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error: unknown) {
+    console.error(error instanceof Error ? error.message : String(error))
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ error: 'Product slug already exists' }, { status: 400 })
     }
-    console.error(error)
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
   }
 }

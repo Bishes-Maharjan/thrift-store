@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import type { OrderAdminListItem } from '@/types/db-schema'
 
 export default async function AdminOrdersPage() {
-  const orders = await prisma.order.findMany({
+  const orders: OrderAdminListItem[] = await prisma.order.findMany({
     include: {
       user: true,
       payment: true,

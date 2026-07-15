@@ -1,9 +1,10 @@
 import { getCart } from '@/app/actions/cart'
 import CartManager from './CartManager'
+import type { CartItemWithDetails } from '@/types/db-schema'
 
 export default async function CartPage() {
   const cart = await getCart()
-  const items = cart?.items || []
+  const items: CartItemWithDetails[] = cart?.items ?? []
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen">

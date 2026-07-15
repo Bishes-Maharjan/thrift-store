@@ -2,11 +2,12 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import OrderStatusEditor from '../OrderStatusEditor'
 import Link from 'next/link'
+import type { OrderWithAdminDetails } from '@/types/db-schema'
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
-  const order = await prisma.order.findUnique({
+  const order: OrderWithAdminDetails | null = await prisma.order.findUnique({
     where: { id },
     include: {
       user: true,
@@ -40,7 +41,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <p className="text-sm font-black text-[#1d1d1f]">Current: {order.status}</p>
           </div>
           <div className="mt-4 sm:mt-0">
-            <OrderStatusEditor orderId={order.id} currentStatus={order.status as any} />
+            <OrderStatusEditor orderId={order.id} currentStatus={order.status} />
           </div>
         </div>
 

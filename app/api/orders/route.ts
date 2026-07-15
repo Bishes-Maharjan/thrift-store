@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { Prisma } from '@prisma/client'
 
 export async function GET(req: Request) {
   try {
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const where: any = {}
+    const where: Prisma.OrderWhereInput = {}
     
     if (session.user.role !== 'ADMIN') {
       where.userId = session.user.id
