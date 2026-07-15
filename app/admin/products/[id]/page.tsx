@@ -10,11 +10,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       where: { id },
       include: {
         images: {
-          orderBy: { sortOrder: 'asc' }
-        }
-      }
+          orderBy: { sortOrder: 'asc' },
+        },
+        _count: {
+          select: { orderItems: true },
+        },
+      },
     }),
-    prisma.category.findMany({ orderBy: { name: 'asc' } })
+    prisma.category.findMany({ orderBy: { name: 'asc' } }),
   ])
 
   if (!product) return notFound()
@@ -24,7 +27,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-black uppercase text-[#1d1d1f]">Edit Product</h1>
       </div>
-      <ProductForm initialData={product} categories={categories} />
+      <ProductForm
+        initialData={product}
+        categories={categories}
+        canDelete={product._count.orderItems === 0}
+      />
     </div>
   )
 }

@@ -12,9 +12,11 @@ type Category = {
 }
 
 export default function CategoryForm({ 
-  initialData, 
+  initialData,
+  canDelete = true,
 }: { 
-  initialData?: Category, 
+  initialData?: Category
+  canDelete?: boolean
 }) {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -33,11 +35,14 @@ export default function CategoryForm({
     setIsDeleting(true)
     try {
       const res = await fetch(`/api/categories/${initialData.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete category')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete category')
+      }
       router.push('/admin/categories')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete category')
       setIsDeleteModalOpen(false)
     } finally {
       setIsDeleting(false)
@@ -139,7 +144,7 @@ export default function CategoryForm({
         >
           Cancel
         </Link>
-        {initialData && (
+        {initialData && canDelete && (
           <button
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
@@ -147,6 +152,11 @@ export default function CategoryForm({
           >
             Delete
           </button>
+        )}
+        {initialData && !canDelete && (
+          <p className="flex-1 text-center text-xs font-bold uppercase tracking-widest text-[#86868b] px-4 py-3">
+            Cannot delete — has products
+          </p>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { Prisma } from '@prisma/client'
 
 export async function GET(
   req: Request,
@@ -60,14 +61,38 @@ export async function DELETE(
     }
 
     const { id } = await params
-    
+
+    const category = await prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    })
+
+    if (!category) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
+
+    if (category._count.products > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete this category because ${category._count.products} product${category._count.products === 1 ? '' : 's'} ${category._count.products === 1 ? 'is' : 'are'} still attached to it.`,
+        },
+        { status: 400 }
+      )
+    }
+
     await prisma.category.delete({
-      where: { id }
+      where: { id },
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.code === 'P2025') return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })
   }
 }

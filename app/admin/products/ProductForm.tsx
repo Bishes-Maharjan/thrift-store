@@ -32,9 +32,11 @@ type ProductData = {
 export default function ProductForm({
   initialData,
   categories,
+  canDelete = true,
 }: {
   initialData?: ProductWithImagesOrdered
   categories: Category[]
+  canDelete?: boolean
 }) {
   const router = useRouter()
   const [formData, setFormData] = useState<ProductData>({
@@ -63,11 +65,14 @@ export default function ProductForm({
     setIsDeleting(true)
     try {
       const res = await fetch(`/api/products/${initialData.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete product')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete product')
+      }
       router.push('/admin/products')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete product')
       setIsDeleteModalOpen(false)
     } finally {
       setIsDeleting(false)
@@ -238,7 +243,7 @@ export default function ProductForm({
         <Link href="/admin/products" className="flex-1 text-center bg-gray-100 text-[#1d1d1f] px-4 py-4 text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors rounded-full border border-[#d2d2d7]">
           Cancel
         </Link>
-        {initialData && (
+        {initialData && canDelete && (
           <button
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
@@ -246,6 +251,11 @@ export default function ProductForm({
           >
             Delete
           </button>
+        )}
+        {initialData && !canDelete && (
+          <p className="flex-1 text-center text-xs font-bold uppercase tracking-widest text-[#86868b] px-4 py-4">
+            Cannot delete — attached to orders
+          </p>
         )}
       </div>
 

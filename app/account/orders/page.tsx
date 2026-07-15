@@ -56,7 +56,7 @@ export default async function OrdersPage() {
                     View Details
                   </Link>
                   <span className={`inline-block px-3 py-1 text-[10px] font-bold tracking-widest uppercase mt-2 sm:mt-1 ${order.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
                       'bg-gray-200 text-gray-800'
                     }`}>
                     {order.status}

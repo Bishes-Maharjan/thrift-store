@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { deleteCloudinaryImage } from '@/app/actions/cloudinary'
+import { Prisma } from '@prisma/client'
 
 export async function GET(
   req: Request,
@@ -69,10 +70,32 @@ export async function DELETE(
     }
 
     const { id } = await params
-    
-    // Cleanup images from Cloudinary before deleting from DB
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true },
+    })
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+
+    const orderItemCount = await prisma.orderItem.count({
+      where: { productId: id },
+    })
+
+    if (orderItemCount > 0) {
+      return NextResponse.json(
+        {
+          error:
+            'Cannot delete this product because it is attached to one or more orders.',
+        },
+        { status: 400 }
+      )
+    }
+
     const productImages = await prisma.productImage.findMany({
-      where: { productId: id }
+      where: { productId: id },
     })
     
     for (const img of productImages) {
@@ -90,8 +113,10 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.code === 'P2025') return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
   }
 }
