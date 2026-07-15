@@ -302,7 +302,7 @@ async function seedProductImages(
   }
 
   const remainingSearches = imageSearches.slice(existingCount)
-  let sourceUrls = await fetchWikimediaImageUrls(remainingSearches, neededCount - existingCount)
+  const sourceUrls = await fetchWikimediaImageUrls(remainingSearches, neededCount - existingCount)
 
   if (sourceUrls.length < neededCount - existingCount) {
     const missing = neededCount - existingCount - sourceUrls.length

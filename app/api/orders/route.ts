@@ -40,7 +40,11 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.json(orders)
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error instanceof Error ? error.message : String(error))
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
   }
 }
@@ -48,5 +52,6 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   // Order creation is primarily handled via the checkout server action
   // But for API completeness we can implement a basic version or return 405 Method Not Allowed
+  console.error('Method not allowed. Use checkout flow.',req.url)
   return NextResponse.json({ error: 'Method not allowed. Use checkout flow.' }, { status: 405 })
 }
