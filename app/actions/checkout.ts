@@ -66,20 +66,20 @@ export async function placeOrder(formData: { line1: string; city: string; provin
     }
   })
 
-  
-if(!address){
-   address = await prisma.address.create({
-    data: {
-      userId,
-      line1,
-      city,
-      province,
-      postalCode,
-      latitude,
-      longitude,
-    }
-  })
-}
+
+  if (!address) {
+    address = await prisma.address.create({
+      data: {
+        userId,
+        line1,
+        city,
+        province,
+        postalCode,
+        latitude,
+        longitude,
+      }
+    })
+  }
   // Create Order
   const order = await prisma.order.create({
     data: {
@@ -127,7 +127,7 @@ if(!address){
       customer_info: {
         name: session.user.name || 'Customer',
         email: session.user.email || 'customer@example.com',
-        phone: '9800000000' // Placeholder if no phone
+        phone: session.user.phone || '9800000000' // Placeholder if no phone
       }
     }
 
