@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 type DeleteModalProps = {
   isOpen: boolean
@@ -35,7 +36,7 @@ export default function DeleteModal({
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div 
         className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -67,6 +68,7 @@ export default function DeleteModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
