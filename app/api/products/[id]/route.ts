@@ -39,6 +39,11 @@ export async function PATCH(
     const { id } = await params
     const data = await req.json()
 
+    // 1. Get existing images to compare for deletions
+    const existingImages = await prisma.productImage.findMany({
+      where: { productId: id }
+    })
+
     const product = await prisma.product.update({
       where: { id },
       data: {
@@ -50,6 +55,41 @@ export async function PATCH(
         isActive: data.isActive,
       }
     })
+
+    if (data.images && Array.isArray(data.images)) {
+      // Find removed images
+      const incomingPublicIds = new Set(data.images.map((img: any) => img.publicId).filter(Boolean))
+      const imagesToRemove = existingImages.filter(img => img.publicId && !incomingPublicIds.has(img.publicId))
+
+      // Delete removed images from Cloudinary
+      for (const img of imagesToRemove) {
+        if (img.publicId) {
+          try {
+            await deleteCloudinaryImage(img.publicId)
+          } catch (e) {
+            console.error(`Failed to delete image ${img.publicId} from cloudinary`, e)
+          }
+        }
+      }
+
+      // Delete all existing image records for this product
+      await prisma.productImage.deleteMany({
+        where: { productId: id }
+      })
+
+      // Recreate image records in the new order
+      for (const [index, img] of data.images.entries()) {
+        await prisma.productImage.create({
+          data: {
+            productId: id,
+            url: img.url,
+            publicId: img.publicId,
+            isPrimary: index === 0,
+            sortOrder: index,
+          }
+        })
+      }
+    }
 
     return NextResponse.json(product)
   } catch (error: any) {
