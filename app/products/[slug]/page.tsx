@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import AddToCartForm from './AddToCartForm'
 import Link from 'next/link'
+import ProductGallery from './ProductGallery'
 
 export default async function ProductDetailPage({
   params,
@@ -51,28 +52,7 @@ export default async function ProductDetailPage({
         <div className="mx-auto mt-8 max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-12">
             {/* Image gallery */}
-            <div className="flex flex-col-reverse">
-              <div className="mt-6 w-full max-w-2xl mx-auto sm:block lg:max-w-none">
-                <div className="grid grid-cols-4 gap-4" aria-orientation="horizontal" role="tablist">
-                  {product.images.map((image) => (
-                    <div
-                      key={image.id}
-                      className="relative h-24 bg-[#f5f5f7] flex items-center justify-center cursor-pointer border border-[#d2d2d7] hover:border-[#0071e3] transition-all rounded-lg"
-                    >
-                      <img src={image.url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="w-full aspect-[3/4] bg-[#f5f5f7] flex items-center justify-center rounded-xl overflow-hidden">
-                {product.images[0] ? (
-                  <img src={product.images[0].url} alt={product.name} className="w-full h-full object-center object-cover" />
-                ) : (
-                  <span className="text-[#86868b] text-xs tracking-widest uppercase">No Image</span>
-                )}
-              </div>
-            </div>
+            <ProductGallery images={product.images} productName={product.name} />
 
             {/* Product info */}
             <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
