@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { deleteCloudinaryImage } from '@/app/actions/cloudinary'
 import { Prisma } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(
   req: Request,
@@ -152,6 +153,7 @@ export async function DELETE(
       where: { id }
     })
 
+    revalidatePath('/admin/products')
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
